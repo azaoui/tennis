@@ -1,4 +1,4 @@
-# tennis
+# tennis scoring kafka demo
 Event driven Tennis Scoring System with Kafka and Spring Boot
 
 
