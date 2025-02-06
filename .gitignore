@@ -1,0 +1,51 @@
+# Compiled class files
+*.class
+target/
+out/
+bin/
+
+# Log files
+*.log
+logs/
+*.tmp
+hs_err_pid*
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+
+# Eclipse files
+.project
+.classpath
+.settings/
+
+# VS Code files
+.vscode/
+
+
+
+
+
+# Maven build directory
+mvnw
+mvnw.cmd
+/.mvn
+/target/
+
+
+
+
+
+
+# Lombok-generated files
+.lombok/
+
+
+# Generated files by tools
+target/
+generated/
+
+# Temporary files
+
+*.tmp
