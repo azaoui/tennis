@@ -368,7 +368,8 @@ curl -X POST "http://localhost:8080/api/tennis/play" \
 ```
 ![image](https://github.com/user-attachments/assets/4e0ca7ea-66c3-4f80-8d3c-f0bec5fc7e8a)
 
-![image](https://github.com/user-attachments/assets/418eda4a-0d91-4f43-9d86-b4af9eaca7d6)
+![image](https://github.com/user-attachments/assets/082972ee-783f-4992-814a-042b674d6cd2)
+
 
 ![image](https://github.com/user-attachments/assets/c9932dd4-2913-49ac-8952-c7971faf095d)
 
