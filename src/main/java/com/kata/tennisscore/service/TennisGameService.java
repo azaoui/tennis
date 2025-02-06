@@ -16,51 +16,93 @@ public class TennisGameService {
 
     @Transactional(transactionManager = "transactionManager")
     public TennisGame processBallEvent(TennisGame game, String winner) {
-        // Check for invalid input.
-        if (winner == null || !(winner.equalsIgnoreCase("A") || winner.equalsIgnoreCase("B"))) {
+
+
+        if (winner == null || (!winner.equalsIgnoreCase("A") && !winner.equalsIgnoreCase("B"))) {
             throw new IllegalArgumentException("Invalid ball winner: " + winner);
         }
 
-        // If the game is already finished, do nothing.
         if (game.getGameStatus() == GameStatus.FINISHED) {
             return game;
         }
 
         boolean isPlayerA = winner.equalsIgnoreCase("A");
 
-        // If both players are at 40, we are in the deuce/advantage region.
-        if (game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() == TennisPoint.FORTY) {
+        // Handle DEUCE and ADVANTAGE scenarios
+        if (isDeuce(game)) {
             if (game.getGameStatus() == GameStatus.DEUCE) {
-                // The winner of this ball gets advantage.
                 game.setGameStatus(isPlayerA ? GameStatus.ADVANTAGE_A : GameStatus.ADVANTAGE_B);
+                System.out.println("Player " + winner + " has Advantage");
             } else if ((game.getGameStatus() == GameStatus.ADVANTAGE_A && isPlayerA) ||
                     (game.getGameStatus() == GameStatus.ADVANTAGE_B && !isPlayerA)) {
-                // The player with advantage wins the game.
-                game.setGameStatus(GameStatus.FINISHED);
+                declareWinner(game, winner);
+                return game;
             } else {
-                // If the opponent wins, revert back to deuce.
+                System.out.println("DEUCE");
                 game.setGameStatus(GameStatus.DEUCE);
             }
-        } else {
-            // Normal score increment (not in deuce).
+        }
+        // Handle normal score progression
+        else {
             if (isPlayerA) {
                 game.setScorePlayerA(game.getScorePlayerA().next());
             } else {
                 game.setScorePlayerB(game.getScorePlayerB().next());
             }
 
-            // If after the update both players are at 40, then set the status to DEUCE.
+            System.out.println(game.getScoreBoard());
+
+            // Ensure game enters DEUCE if both players reach 40
             if (game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() == TennisPoint.FORTY) {
-                game.setGameStatus(GameStatus.DEUCE);
+                if (game.getGameStatus() != GameStatus.DEUCE) {
+                    System.out.println("DEUCE");
+                    game.setGameStatus(GameStatus.DEUCE);
+                }
             }
-            // Otherwise, if one player is at 40 and the other is not, that player wins.
-            else if (game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() != TennisPoint.FORTY) {
-                game.setGameStatus(GameStatus.FINISHED);
-            } else if (game.getScorePlayerB() == TennisPoint.FORTY && game.getScorePlayerA() != TennisPoint.FORTY) {
-                game.setGameStatus(GameStatus.FINISHED);
+            //  Check if a player wins the game
+            else if (hasWon(game, isPlayerA)) {
+                declareWinner(game, winner);
             }
         }
 
         return tennisGameRepository.save(game);
+    }
+
+    public void processBallSequence(TennisGame game, String ballSequence) {
+        for (char ballWinner : ballSequence.toCharArray()) {
+            if (game.getGameStatus() == GameStatus.FINISHED) {
+                break;
+            }
+            // Assign the updated game instance to `game`
+            game = processBallEvent(game, String.valueOf(ballWinner));
+        }
+    }
+
+    private void declareWinner(TennisGame game, String winner) {
+        System.out.println("Player " + winner + " wins the game");
+        game.setGameStatus(GameStatus.FINISHED);
+    }
+
+    private boolean isDeuce(TennisGame game) {
+        return game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() == TennisPoint.FORTY;
+    }
+
+    private boolean hasWon(TennisGame game, boolean isPlayerA) {
+        //  If both players are at 40, enforce DEUCE
+        if (isDeuce(game)) {
+            game.setGameStatus(GameStatus.DEUCE);
+            return false;
+        }
+
+        //  If a player is at Advantage and wins the next point, they win
+        if ((game.getGameStatus() == GameStatus.ADVANTAGE_A && isPlayerA) ||
+                (game.getGameStatus() == GameStatus.ADVANTAGE_B && !isPlayerA)) {
+            declareWinner(game, isPlayerA ? "A" : "B");
+            return true;
+        }
+
+        //  If a player reaches 40 and the opponent is below 30, they win immediately
+        return (isPlayerA && game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB().ordinal() < TennisPoint.THIRTY.ordinal()) ||
+                (!isPlayerA && game.getScorePlayerB() == TennisPoint.FORTY && game.getScorePlayerA().ordinal() < TennisPoint.THIRTY.ordinal());
     }
 }

@@ -15,8 +15,6 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-
 @Service
 public class KafkaConsumerService {
 
@@ -57,13 +55,6 @@ public class KafkaConsumerService {
 
             // Process the ball event.
             currentGame = tennisGameService.processBallEvent(currentGame, ballEventMessage.getWinner());
-
-            // Log the updated score or the winner.
-            if (currentGame.getGameStatus() == GameStatus.FINISHED) {
-                logger.info("{} wins the game", ballWinner);
-            } else {
-                logger.info("Updated score: {}", currentGame.getScoreBoard());
-            }
 
             // Manually acknowledge the offset only after successful processing.
             acknowledgment.acknowledge();  // manual acknowledge

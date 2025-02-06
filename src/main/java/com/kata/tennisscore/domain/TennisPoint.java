@@ -25,8 +25,10 @@ public enum TennisPoint {
                 return THIRTY;
             case THIRTY:
                 return FORTY;
+            case FORTY:
+                return FORTY;  //  Prevents throwing an exception
             default:
-                throw new IllegalStateException("Cannot advance score beyond FORTY");
+                return this;
         }
     }
 }
