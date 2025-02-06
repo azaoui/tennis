@@ -168,7 +168,18 @@ spring.kafka.consumer.enable-auto-commit=false
 ```
 
 
+### How the order is maintanning so we can use kafka:
 
+In our tennis scoring system, we use gameId as the key to ensure that all events for the same game (ball events) go to the same partition in Kafka. This guarantees that the events are processed in the correct order, preventing scoring inconsistencies across partitions.
+```java
+kafkaTemplate.executeInTransaction(operation -> {
+                ProducerRecord<String, String> record = new ProducerRecord<>(
+                        topicName,
+                        message.getGameId().toString(),  // Key: gameId is the partition id to insure the correct order
+                        jsonMessage  // Value: Serialized JSON message
+                );
+
+```
 ### Docker-compose used for this demo
 
 ```yaml
@@ -337,6 +348,24 @@ volumes:
 ### Demo : 
 
 
+Clone the project and run 
+```
+run docker-compose up -d // to run brokers
+```
+```
+mvn package // to package the jar
+```
+
+```
+java -jar target\tennis-kafka-0.0.1-SNAPSHOT.jar to start the app
+```
+
+```
+curl -X POST "http://localhost:8080/api/tennis/play" \
+     -H "Content-Type: text/plain" \
+     -d "ABABAA"
+
+```
 ![image](https://github.com/user-attachments/assets/4e0ca7ea-66c3-4f80-8d3c-f0bec5fc7e8a)
 
 ![image](https://github.com/user-attachments/assets/418eda4a-0d91-4f43-9d86-b4af9eaca7d6)
