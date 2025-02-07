@@ -95,8 +95,21 @@ spring.kafka.topic.replication-factor=2
     public NewTopic createTopic() {
         return new NewTopic(topicName, partitions, replicationFactor);
     }
-```java
+```
 
+
+### How the order is maintanning so we can use kafka with multi patition topic:
+
+In our tennis scoring system, we use gameId as the key to ensure that all events for the same game (ball events) go to the same partition in Kafka. This guarantees that the events are processed in the correct order, preventing scoring inconsistencies across partitions.
+```java
+kafkaTemplate.executeInTransaction(operation -> {
+                ProducerRecord<String, String> record = new ProducerRecord<>(
+                        topicName,
+                        message.getGameId().toString(),  // Key: gameId is the partition id to insure the correct order
+                        jsonMessage  // Value: Serialized JSON message
+                );
+
+```
 
 
 ## exactly-once semantics (EOS)
@@ -111,6 +124,8 @@ spring.kafka.producer.transaction-id-prefix=tennis-tx-
 spring.kafka.producer.enable-idempotence=true
 spring.kafka.producer.acks=all
 ```
+
+
  - The idempotence  is enabled to prevent message duplication even in failure case
  - **spring.kafka.producer.transaction-id-prefix** to enable transaction (see https://docs.spring.io/spring-kafka/reference/kafka/transactions.html)
 
@@ -168,18 +183,7 @@ spring.kafka.consumer.enable-auto-commit=false
 ```
 
 
-### How the order is maintanning so we can use kafka:
 
-In our tennis scoring system, we use gameId as the key to ensure that all events for the same game (ball events) go to the same partition in Kafka. This guarantees that the events are processed in the correct order, preventing scoring inconsistencies across partitions.
-```java
-kafkaTemplate.executeInTransaction(operation -> {
-                ProducerRecord<String, String> record = new ProducerRecord<>(
-                        topicName,
-                        message.getGameId().toString(),  // Key: gameId is the partition id to insure the correct order
-                        jsonMessage  // Value: Serialized JSON message
-                );
-
-```
 ### Docker-compose used for this demo
 
 ```yaml
