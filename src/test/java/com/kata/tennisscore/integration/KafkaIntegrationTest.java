@@ -17,6 +17,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.context.ActiveProfiles;
 
 
 import java.util.Map;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 3, topics = { "tennis-score" })
+@ActiveProfiles("test") // Ensure test profile is applied
 public class KafkaIntegrationTest {
 
     @Autowired
