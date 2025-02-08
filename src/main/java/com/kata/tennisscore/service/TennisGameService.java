@@ -3,6 +3,7 @@ package com.kata.tennisscore.service;
 import com.kata.tennisscore.domain.GameStatus;
 import com.kata.tennisscore.domain.TennisGame;
 import com.kata.tennisscore.domain.TennisPoint;
+import com.kata.tennisscore.domain.Winner;
 import com.kata.tennisscore.repository.TennisGameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,10 @@ public class TennisGameService {
 
         boolean isPlayerA = winner.equalsIgnoreCase("A");
 
+        if (game.getGameStatus() != GameStatus.FINISHED) {
+            System.out.println(game.getScoreBoard());
+        }
+
         // Handle DEUCE and ADVANTAGE scenarios
         if (isDeuce(game)) {
             if (game.getGameStatus() == GameStatus.DEUCE) {
@@ -36,21 +41,25 @@ public class TennisGameService {
             } else if ((game.getGameStatus() == GameStatus.ADVANTAGE_A && isPlayerA) ||
                     (game.getGameStatus() == GameStatus.ADVANTAGE_B && !isPlayerA)) {
                 declareWinner(game, winner);
-                return game;
             } else {
                 System.out.println("DEUCE");
                 game.setGameStatus(GameStatus.DEUCE);
             }
-        }
-        // Handle normal score progression
-        else {
+        } else {
+            // 1. Store current score before updating
+            TennisPoint previousScore = isPlayerA ? game.getScorePlayerA() : game.getScorePlayerB();
+
+            // 2. Update the score
             if (isPlayerA) {
                 game.setScorePlayerA(game.getScorePlayerA().next());
             } else {
                 game.setScorePlayerB(game.getScorePlayerB().next());
             }
 
-            System.out.println(game.getScoreBoard());
+            // 3. If the player was at 40, the opponent was at 30, and `next()` was called, declare a win
+            if (previousScore == TennisPoint.FORTY) {
+                declareWinner(game, winner);
+            }
 
             // Ensure game enters DEUCE if both players reach 40
             if (game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() == TennisPoint.FORTY) {
@@ -59,14 +68,12 @@ public class TennisGameService {
                     game.setGameStatus(GameStatus.DEUCE);
                 }
             }
-            //  Check if a player wins the game
-            else if (hasWon(game, isPlayerA)) {
-                declareWinner(game, winner);
-            }
         }
 
         return tennisGameRepository.save(game);
     }
+
+
 
     public void processBallSequence(TennisGame game, String ballSequence) {
         for (char ballWinner : ballSequence.toCharArray()) {
@@ -81,6 +88,8 @@ public class TennisGameService {
     private void declareWinner(TennisGame game, String winner) {
         System.out.println("Player " + winner + " wins the game");
         game.setGameStatus(GameStatus.FINISHED);
+        game.setWinner(winner.equalsIgnoreCase("A") ? Winner.PLAYER_A : Winner.PLAYER_B);
+
     }
 
     private boolean isDeuce(TennisGame game) {
@@ -97,12 +106,14 @@ public class TennisGameService {
         //  If a player is at Advantage and wins the next point, they win
         if ((game.getGameStatus() == GameStatus.ADVANTAGE_A && isPlayerA) ||
                 (game.getGameStatus() == GameStatus.ADVANTAGE_B && !isPlayerA)) {
-            declareWinner(game, isPlayerA ? "A" : "B");
             return true;
         }
-
-        //  If a player reaches 40 and the opponent is below 30, they win immediately
-        return (isPlayerA && game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB().ordinal() < TennisPoint.THIRTY.ordinal()) ||
-                (!isPlayerA && game.getScorePlayerB() == TennisPoint.FORTY && game.getScorePlayerA().ordinal() < TennisPoint.THIRTY.ordinal());
+        // In normal play: if a player reaches FORTY and the other score is less than THIRTY, they win.
+        boolean isPlayerAtForty = isPlayerA ? game.getScorePlayerA() == TennisPoint.FORTY
+                : game.getScorePlayerB() == TennisPoint.FORTY;
+        boolean isOtherBelowThirty = isPlayerA
+                ? game.getScorePlayerB().ordinal() < TennisPoint.THIRTY.ordinal()
+                : game.getScorePlayerA().ordinal() < TennisPoint.THIRTY.ordinal();
+        return isPlayerAtForty && isOtherBelowThirty;
     }
 }

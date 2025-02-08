@@ -11,6 +11,10 @@ public class TennisGame {
     @Column(name = "game_id", nullable = false)
     private UUID gameId;
 
+
+    @Column(name = "ball_sequence", nullable = false)
+    private String ballSequence = "";
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "player_a_id")
     private Player playerA;
@@ -31,6 +35,11 @@ public class TennisGame {
     @Column(name = "game_status")
     private GameStatus gameStatus;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "winner")
+    private Winner winner;
+
+
     public TennisGame() {}
 
     public TennisGame(Player playerA, Player playerB) {
@@ -40,6 +49,8 @@ public class TennisGame {
         this.scorePlayerA = TennisPoint.ZERO;
         this.scorePlayerB = TennisPoint.ZERO;
         this.gameStatus = GameStatus.IN_PROGRESS;
+        this.ballSequence="";
+        this.winner = null; // Initially, no winner
     }
 
     // Getters and setters.
@@ -78,6 +89,22 @@ public class TennisGame {
     }
     public void setGameStatus(GameStatus gameStatus) {
         this.gameStatus = gameStatus;
+    }
+
+    public Winner getWinner() {
+        return winner;
+    }
+
+    public void setWinner(Winner winner) {
+        this.winner = winner;
+    }
+
+    public String getBallSequence() {
+        return ballSequence;
+    }
+
+    public void setBallSequence(String ballSequence) {
+        this.ballSequence = ballSequence;
     }
 
     // Returns a formatted scoreboard string.

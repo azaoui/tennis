@@ -43,6 +43,7 @@ public class TennisController {
 
         // Create a new game with two players.
         TennisGame game = new TennisGame(new Player("Player A"), new Player("Player B"));
+        game.setBallSequence(trimmedSequence);
         game = tennisGameRepository.save(game);
         kafkaConsumerService.setCurrentGame(game);
 
