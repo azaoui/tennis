@@ -349,12 +349,14 @@ volumes:
 **This Docker Compose configuration sets up a Kafka cluster (3 brokers) with ZooKeeper (3 nodes), a PostgreSQL database, and Kafka UI for monitoring. It includes pgAdmin for managing the PostgreSQL database. The setup enables high availability and scalability for Kafka messaging and database persistence.**
 
 
+
+
 ### Demo : 
 
 
 Clone the project and run 
 ```
-run docker-compose up -d // to run brokers
+docker-compose up -d // to run brokers
 ```
 ```
 mvn package // to package the jar
@@ -377,6 +379,11 @@ curl -X POST "http://localhost:8080/api/tennis/play" \
 
 ![image](https://github.com/user-attachments/assets/c9932dd4-2913-49ac-8952-c7971faf095d)
 
+
+#### License
+ 
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 
 
