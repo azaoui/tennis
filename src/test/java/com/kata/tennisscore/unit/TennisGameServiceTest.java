@@ -41,6 +41,21 @@ public class TennisGameServiceTest {
         assertNotEquals(TennisPoint.FORTY, game.getScorePlayerB());
     }
 
+    @Test
+    public void testSequence_AAA_GameInProgress() {
+        tennisGameService.processBallSequence(game, "AAA");
+        assertEquals(GameStatus.IN_PROGRESS, game.getGameStatus());
+        assertEquals(TennisPoint.FORTY, game.getScorePlayerA());
+        assertNotEquals(TennisPoint.FORTY, game.getScorePlayerB());
+    }
+
+    @Test
+    public void testSequence_ABABABBB_PlayerBWins() {
+        tennisGameService.processBallSequence(game, "ABABABBB");
+        assertEquals(GameStatus.FINISHED, game.getGameStatus());
+
+    }
+
     /**  Player B wins without DEUCE */
     @Test
     public void testSequence_BBBB_PlayerBWins() {
@@ -77,6 +92,14 @@ public class TennisGameServiceTest {
         assertEquals(TennisPoint.FORTY, game.getScorePlayerB());
     }
 
+    @Test
+    public void testSequence_ABABABAA_PlayerAWIN() {
+        tennisGameService.processBallSequence(game, "ABABABAA");
+        assertEquals(GameStatus.FINISHED, game.getGameStatus());
+        assertEquals(TennisPoint.FORTY, game.getScorePlayerA());
+        assertEquals(TennisPoint.FORTY, game.getScorePlayerB());
+    }
+
     /**  Ensure game does not continue after a player wins */
     @Test
     public void testGameStopsAfterWin() {
@@ -106,7 +129,6 @@ public class TennisGameServiceTest {
         assertTrue(exception.getMessage().contains("Invalid ball winner"));
     }
 
-    /**  Edge case: alternating wins but never reaching deuce */
     @Test
     public void testSequence_BABAABAB_GameContinues() {
         tennisGameService.processBallSequence(game, "BABAABAB");

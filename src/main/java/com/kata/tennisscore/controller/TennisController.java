@@ -1,27 +1,22 @@
 package com.kata.tennisscore.controller;
 
-import com.kata.tennisscore.domain.Player;
-import com.kata.tennisscore.domain.TennisGame;
-import com.kata.tennisscore.dto.BallEventMessage;
-import com.kata.tennisscore.kafka.KafkaConsumerService;
-import com.kata.tennisscore.kafka.KafkaProducerService;
-import com.kata.tennisscore.repository.TennisGameRepository;
+
+import com.kata.tennisscore.processor.TennisGameProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/tennis")
 public class TennisController {
 
-    @Autowired
-    private KafkaProducerService kafkaProducerService;
 
     @Autowired
-    private KafkaConsumerService kafkaConsumerService;
+    private TennisGameProcessor processor;
 
-    @Autowired
-    private TennisGameRepository tennisGameRepository;
 
     /**
      * Starts a new game by processing a sequence of ball events (e.g., "ABABAA").
@@ -41,29 +36,11 @@ public class TennisController {
             return ResponseEntity.badRequest().body("Error: Invalid sequence payload. Only characters 'A' and 'B' are allowed.");
         }
 
-        // Create a new game with two players.
-        TennisGame game = new TennisGame(new Player("Player A"), new Player("Player B"));
-        game.setBallSequence(trimmedSequence);
-        game = tennisGameRepository.save(game);
-        kafkaConsumerService.setCurrentGame(game);
 
-        int ballNumber = 1;
-        for (char c : trimmedSequence.toCharArray()) {
-            BallEventMessage message = new BallEventMessage(
-                    game.getGameId(),
-                    ballNumber,
-                    String.valueOf(c) // the winner will be "A" or "B"
-
-            );
-            kafkaProducerService.sendBallEvent(message);
-            ballNumber++;
-            // Simulate a delay to allow processing before sending the next event.
-            try {
-                Thread.sleep(1000); // 1-second delay
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
+        processor.processGameAsync(sequence);
         return ResponseEntity.ok("Game processing started with sequence: " + trimmedSequence);
     }
+
 }
+
+

@@ -78,7 +78,7 @@ Event driven Tennis Scoring System with Kafka and Spring Boot
 
 ## Scalability & Parallel Processing
 
-We create a topic with 3 partition and replicat factor set to 2 ( for this demo we have 3 broker so the choise was impact with this constrainte)
+We create a topic with 3 partition and replicat factor set to 2 ( for this demo we have 3 broker so the choice was impacted with this constraint)
 
 - Kafka distributes messages across partitions, allowing multiple consumers to read in parallel (within the same consumer group).
 - More partitions → Higher throughput.
@@ -112,7 +112,7 @@ kafkaTemplate.executeInTransaction(operation -> {
 ```
 
 
-## exactly-once semantics (EOS)
+## Exactly-once semantics (EOS)
 
 
 To achive exactly-once semantics in the demo tennis kafka we use this config
@@ -176,7 +176,7 @@ spring.kafka.consumer.enable-auto-commit=false
 
 ```java
             if (currentGame.getGameStatus() == GameStatus.FINISHED) {
-                logger.info("Game is already finished. Acknowledging message and skipping processing.");
+                log.info("Game is already finished. Acknowledging message and skipping processing.");
                 acknowledgment.acknowledge();  // manual acknowledge
                 return;
             }

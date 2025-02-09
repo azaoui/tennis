@@ -2,25 +2,21 @@ package com.kata.tennisscore.integration;
 
 
 import com.kata.tennisscore.controller.TennisController;
-import com.kata.tennisscore.domain.Player;
-import com.kata.tennisscore.domain.TennisGame;
 import com.kata.tennisscore.kafka.KafkaConsumerService;
 import com.kata.tennisscore.kafka.KafkaProducerService;
+import com.kata.tennisscore.processor.TennisGameProcessor;
 import com.kata.tennisscore.repository.TennisGameRepository;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
-
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TennisController.class)
 public class TennisControllerTest {
@@ -37,15 +33,12 @@ public class TennisControllerTest {
     @MockBean
     private TennisGameRepository tennisGameRepository;
 
+
+    @MockBean
+    private TennisGameProcessor processor;
+
     @Test
     public void testValidSequence() throws Exception {
-        // Create a dummy game object.
-        TennisGame game = new TennisGame(new Player("Player A"), new Player("Player B"));
-        // (The constructor automatically generates a gameId)
-        UUID gameId = game.getGameId();
-
-        // When saving, simply return the game.
-        when(tennisGameRepository.save(ArgumentMatchers.any(TennisGame.class))).thenReturn(game);
 
         // Send a valid sequence "ABABAA"
         mockMvc.perform(post("/api/tennis/play")

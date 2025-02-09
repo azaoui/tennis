@@ -3,6 +3,7 @@ package com.kata.tennisscore.kafka;
 
 import com.kata.tennisscore.dto.BallEventMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 
 @Service
+@Slf4j
 public class KafkaProducerService {
 
     @Value("${spring.kafka.topic.name}")
@@ -46,7 +48,7 @@ public class KafkaProducerService {
             });
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error when producing Ball event", e);
         }
     }
 }

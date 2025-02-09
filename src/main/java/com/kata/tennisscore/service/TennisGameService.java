@@ -5,11 +5,13 @@ import com.kata.tennisscore.domain.TennisGame;
 import com.kata.tennisscore.domain.TennisPoint;
 import com.kata.tennisscore.domain.Winner;
 import com.kata.tennisscore.repository.TennisGameRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class TennisGameService {
 
     @Autowired
@@ -20,6 +22,7 @@ public class TennisGameService {
 
 
         if (winner == null || (!winner.equalsIgnoreCase("A") && !winner.equalsIgnoreCase("B"))) {
+            log.error("Invalid ball winner: {}", winner);
             throw new IllegalArgumentException("Invalid ball winner: " + winner);
         }
 
@@ -29,20 +32,18 @@ public class TennisGameService {
 
         boolean isPlayerA = winner.equalsIgnoreCase("A");
 
-        if (game.getGameStatus() != GameStatus.FINISHED) {
-            System.out.println(game.getScoreBoard());
-        }
+
 
         // Handle DEUCE and ADVANTAGE scenarios
         if (isDeuce(game)) {
             if (game.getGameStatus() == GameStatus.DEUCE) {
                 game.setGameStatus(isPlayerA ? GameStatus.ADVANTAGE_A : GameStatus.ADVANTAGE_B);
-                System.out.println("Player " + winner + " has Advantage");
+                log.info("Player {} has Advantage", winner);
             } else if ((game.getGameStatus() == GameStatus.ADVANTAGE_A && isPlayerA) ||
                     (game.getGameStatus() == GameStatus.ADVANTAGE_B && !isPlayerA)) {
                 declareWinner(game, winner);
             } else {
-                System.out.println("DEUCE");
+                log.info("DEUCE");
                 game.setGameStatus(GameStatus.DEUCE);
             }
         } else {
@@ -64,12 +65,14 @@ public class TennisGameService {
             // Ensure game enters DEUCE if both players reach 40
             if (game.getScorePlayerA() == TennisPoint.FORTY && game.getScorePlayerB() == TennisPoint.FORTY) {
                 if (game.getGameStatus() != GameStatus.DEUCE) {
-                    System.out.println("DEUCE");
+                    log.info("DEUCE");
                     game.setGameStatus(GameStatus.DEUCE);
                 }
             }
         }
-
+        if (game.getGameStatus() != GameStatus.FINISHED) {
+            log.info(game.getScoreBoard());
+        }
         return tennisGameRepository.save(game);
     }
 
@@ -86,7 +89,7 @@ public class TennisGameService {
     }
 
     private void declareWinner(TennisGame game, String winner) {
-        System.out.println("Player " + winner + " wins the game");
+        log.info("Player {} wins the game!", winner);
         game.setGameStatus(GameStatus.FINISHED);
         game.setWinner(winner.equalsIgnoreCase("A") ? Winner.PLAYER_A : Winner.PLAYER_B);
 
